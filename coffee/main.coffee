@@ -1,25 +1,28 @@
-# scene = require('scene')
-
+scene = require('./scene')
 console.log(scene)
-scene = new THREE.Scene()
-camera = new THREE.PerspectiveCamera( 75,
-                                      window.innerWidth / window.innerHeight,
-                                      0.1,
-                                      1000 )
 
-renderer = new THREE.WebGLRenderer()
-renderer.setSize( window.innerWidth, window.innerHeight )
-document.body.appendChild( renderer.domElement )
+net = new brain.NeuralNetwork(
+  hiddenLayers: [3, 4, 5, 3, 2],
+)
 
-geometry = new THREE.BoxGeometry( 1, 1, 1 )
-material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
-cube = new THREE.Mesh( geometry, material )
+trainingData = [{input: [0, 0], output: [0]},
+                {input: [0, 1], output: [1]},
+                {input: [1, 0], output: [1]},
+                {input: [1, 1], output: [0]}]
 
-scene.add( cube )
+trainingOptions = {
+  errorThresh: 0.0001, # error threshold to reach
+  iterations: 40,   # maximum training iterations
+  log: true,           # console.log() progress periodically
+  logPeriod: 1000,     # number of iterations between logging
+  learningRate: 0.3    # learning rate
+}
+ 
+net.train(trainingData, trainingOptions)
 
-render = (net) ->
-  requestAnimationFrame( render )
-  # renderer.render( scene, camera )
-render()
+output = net.run([1, 0])
+console.log(output)
 
-camera.position.z = 5
+console.log("YEAH")
+scene.useNet(net)
+scene.render()

@@ -6,7 +6,6 @@
         # dest: 'temp'
   # }
 
-  # require('load-grunt-tasks')(grunt)
   # grunt.registerTask('default', [
     # 'watch'
   # ]
@@ -16,20 +15,32 @@
   # ])
 
 module.exports = (grunt) ->
-  grunt.loadNpmTasks('grunt-contrib-coffee')
-  grunt.loadNpmTasks('grunt-contrib-watch')
 
   grunt.initConfig
     watch:
       coffee:
-        files: 'src/*.coffee'
-        tasks: ['coffee:compile']
+        files: 'coffee/*.coffee'
+        tasks: ['coffee:build', 'browserify:build']
 
     coffee:
-      compile:
+      options:
+        bare: true
+      build:
         expand: true,
         flatten: true,
         cwd: "#{__dirname}/coffee",
         src: ['*.coffee'],
-        dest: 'scripts/',
+        dest: 'scripts/temp/',
         ext: '.js'
+    
+    browserify:
+      build:
+        src: ['scripts/temp/*.js'],
+        dest: 'scripts/main.js'
+
+  require('load-grunt-tasks')(grunt)
+
+  grunt.registerTask('default', [
+    'watch'
+  ])
+
