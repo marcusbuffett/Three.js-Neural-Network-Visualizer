@@ -3,50 +3,111 @@ camera = new THREE.PerspectiveCamera( 75,
                                       window.innerWidth / window.innerHeight,
                                       0.1,
                                       1000 )
-renderer = new THREE.WebGLRenderer()
+renderer = new THREE.WebGLRenderer({alpha : true, antialias: true})
 renderer.setSize( window.innerWidth, window.innerHeight )
 document.body.appendChild( renderer.domElement )
 
-net = {}
+controls = new THREE.OrbitControls( camera )
+controls.addEventListener( 'change', render )
+
+neurons = []
+connections = []
 
 # light = new THREE.PointLight( 0xff0000, 1, 100 )
-# light.color.set(new THREE.Color("hsl(50, 100%, 50%)"))
-# light.position.set( 50, 50, 50 )
+# light.position.set( 0, 0, 0 )
 # scene.add( light )
 
-useNet = (net) ->
-  colSpacing = 0.5
-  rowSpacing = 0.5
-  size = 0.5
+colSpacing = 0.5
+rowSpacing = 1.0
+size = 0.5
+
+generateNeurons = (net) ->
   rows = net.sizes.length
-  console.log(net)
-  neurons = []
-  # for i in [0..]
   for row in [0...rows]
     y = size*(row)+rowSpacing*(row)
     yOffset = (rows*size+rowSpacing*(rows-1))/2
-    cols = net.hiddenSizes[row]
-    console.log("y : #{y}")
-    console.log("yOffset : #{yOffset}")
+    cols = net.sizes[row]
+    neurons.push([])
     for col in [0...cols]
       xOffset = (cols*size+colSpacing*(cols-1))/2
       x = size*(col)+colSpacing*(col)
-      geometry = new THREE.BoxGeometry( size, size, 0.1 )
-      material = new THREE.MeshBasicMaterial(
-        color: 0xFF0000
-      )
-      # console.log((new THREE.Color("hsl(0.5, 0.5, 0.5)")).getHex().toString())
-      cube = new THREE.Mesh( geometry, material )
-      cube.position.set(x-xOffset,y-yOffset,0)
-      edges = new THREE.EdgesHelper( cube, 0x00ff00 )
-      scene.add edges
-      scene.add cube
+      if row == 0
+        obj = sensorNode(size)
+      else if row == rows-1
+        obj = outputNode(size)
+      else
+        obj = hiddenNode(size)
+      obj.position.set(x-xOffset,y-yOffset,Math.random()*1)
+      obj.renderOrder = 1
+      scene.add obj
+      neurons[neurons.length - 1].push(obj)
+  return neurons
+
+generateConnections = (net, neurons) ->
+  for layer, r in neurons.slice(0, -1)
+    nextLayer = neurons[r+1]
+    for source, i in layer
+      for target, j in nextLayer
+        material = new THREE.LineBasicMaterial({
+          color: 0xB4B4B4
+        })
+        material.linewidth = 1
+        # material.linewidth = Math.abs(net.weights[r+1][j][i])*5
+        material.opacity = Math.abs(net.weights[r+1][j][i])
+        material.transparent = true
+
+        geometry = new THREE.Geometry()
+        geometry.vertices.push(
+          new THREE.Vector3(source.position.x, source.position.y, source.position.z-0.1),
+          new THREE.Vector3(target.position.x, target.position.y, target.position.z-0.1)
+        )
+
+        line = new THREE.Line( geometry, material )
+        line.renderOrder = 0
+        scene.add line
+        connections.push(line)
+
+useNet = (net) ->
+  generateNeurons(net)
+  # console.log(net)
+  # console.log(neurons)
+  generateConnections(net, neurons)
+
+sensorNode = (size) ->
+  geometry = new THREE.BoxGeometry( size, size, 0 )
+  material = new THREE.MeshBasicMaterial(
+    color: 0xC4C4C4
+  )
+  cube = new THREE.Mesh( geometry, material )
+  return cube
+
+hiddenNode = (size) ->
+  geometry = new THREE.CircleGeometry(size/2, 20)
+  material = new THREE.MeshBasicMaterial(
+    color: 0x757575
+  )
+  cube = new THREE.Mesh( geometry, material )
+  return cube
+
+outputNode = (size) ->
+  geometry = new THREE.BoxGeometry( size, size, 0 )
+  material = new THREE.MeshBasicMaterial(
+    color: 0xC4C4C4
+  )
+  cube = new THREE.Mesh( geometry, material )
+  return cube
 
 camera.position.z = 5
 
 render = (net) ->
-  # requestAnimationFrame( render )
-  renderer.render( scene, camera )
+  for i in [scene.children.length..0]
+    obj = scene.children[ i ]
+    if obj != camera
+      scene.remove(obj)
+  neurons = []
+  connections = []
+  useNet(net)
+  renderer.render(scene, camera)
 
 
 module.exports = {
