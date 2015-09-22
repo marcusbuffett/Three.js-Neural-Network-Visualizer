@@ -1,9 +1,10 @@
 threeData = require('./threes')
 xorData   = require('./xor')
-threeData = require('./threesLeg')
+# threeData = require('./threesLeg')
 data = threeData
 
 batchSize = 1
+learningRate = 0.5
 iterations = 100000
 currentIteration = 0
 error = Infinity
@@ -20,7 +21,7 @@ setBatchSize = (size) ->
   batchSize = size
 
 setLearningRate = (rate) ->
-  trainingOptions.learningRate = rate
+  learningRate = rate
 
 displayOpts = {
   grid: true
@@ -30,8 +31,11 @@ initializeOptions = {
   iterations: 0
 }
 
-resetAll = ->
+stop = ->
   clearInterval(intervalID)
+
+resetAll = ->
+  stop()
   net = new brain.NeuralNetwork
     hiddenLayers: hiddenLayers || undefined
   scene.setNet(net)
@@ -43,8 +47,9 @@ resetAll = ->
       error = info.error
       scene.setInfo(info)
     callbackPeriod: batchSize,     # number of iterations between logging
-    learningRate: 0.3    # learning rate
+    learningRate: learningRate    # learning rate
   }
+  console.log("LEARNING RATE IS : " + learningRate)
   net.train(data.trainingData, initializeOptions)
   scene.updateAndRender(displayOpts)
 
@@ -53,6 +58,7 @@ console.log data.hiddenLayers
 resetAll()
 
 train = ->
+  stop()
   i = 0
   intervalID = setInterval( (->
     net.train(data.trainingData, trainingOptions)
@@ -82,9 +88,11 @@ $('#reset-button').click (e) ->
   resetAll()
   console.log("BLAH")
 
-$('#train-button').click (e) ->
-  resetAll()
+$('#stop-button').click (e) ->
+  stop()
   console.log("BLAH")
+
+$('#train-button').click (e) ->
   train()
 
 

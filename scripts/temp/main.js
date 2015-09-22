@@ -1,14 +1,14 @@
-var batchSize, currentIteration, data, displayOpts, error, hiddenLayers, initializeOptions, intervalID, iterations, net, resetAll, scene, setBatchSize, setLearningRate, threeData, train, trainingOptions, xorData;
+var batchSize, currentIteration, data, displayOpts, error, hiddenLayers, initializeOptions, intervalID, iterations, learningRate, net, resetAll, scene, setBatchSize, setLearningRate, stop, threeData, train, trainingOptions, xorData;
 
 threeData = require('./threes');
 
 xorData = require('./xor');
 
-threeData = require('./threesLeg');
-
 data = threeData;
 
 batchSize = 1;
+
+learningRate = 0.5;
 
 iterations = 100000;
 
@@ -35,7 +35,7 @@ setBatchSize = function(size) {
 };
 
 setLearningRate = function(rate) {
-  return trainingOptions.learningRate = rate;
+  return learningRate = rate;
 };
 
 displayOpts = {
@@ -46,8 +46,12 @@ initializeOptions = {
   iterations: 0
 };
 
+stop = function() {
+  return clearInterval(intervalID);
+};
+
 resetAll = function() {
-  clearInterval(intervalID);
+  stop();
   net = new brain.NeuralNetwork({
     hiddenLayers: hiddenLayers || void 0
   });
@@ -61,8 +65,9 @@ resetAll = function() {
       return scene.setInfo(info);
     },
     callbackPeriod: batchSize,
-    learningRate: 0.3
+    learningRate: learningRate
   };
+  console.log("LEARNING RATE IS : " + learningRate);
   net.train(data.trainingData, initializeOptions);
   return scene.updateAndRender(displayOpts);
 };
@@ -75,6 +80,7 @@ resetAll();
 
 train = function() {
   var i;
+  stop();
   i = 0;
   return intervalID = setInterval((function() {
     var output;
@@ -110,9 +116,12 @@ $('#reset-button').click(function(e) {
   return console.log("BLAH");
 });
 
+$('#stop-button').click(function(e) {
+  stop();
+  return console.log("BLAH");
+});
+
 $('#train-button').click(function(e) {
-  resetAll();
-  console.log("BLAH");
   return train();
 });
 

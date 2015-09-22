@@ -1,15 +1,15 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var batchSize, currentIteration, data, displayOpts, error, hiddenLayers, initializeOptions, intervalID, iterations, net, resetAll, scene, setBatchSize, setLearningRate, threeData, train, trainingOptions, xorData;
+var batchSize, currentIteration, data, displayOpts, error, hiddenLayers, initializeOptions, intervalID, iterations, learningRate, net, resetAll, scene, setBatchSize, setLearningRate, stop, threeData, train, trainingOptions, xorData;
 
 threeData = require('./threes');
 
 xorData = require('./xor');
 
-threeData = require('./threesLeg');
-
 data = threeData;
 
 batchSize = 1;
+
+learningRate = 0.5;
 
 iterations = 100000;
 
@@ -36,7 +36,7 @@ setBatchSize = function(size) {
 };
 
 setLearningRate = function(rate) {
-  return trainingOptions.learningRate = rate;
+  return learningRate = rate;
 };
 
 displayOpts = {
@@ -47,8 +47,12 @@ initializeOptions = {
   iterations: 0
 };
 
+stop = function() {
+  return clearInterval(intervalID);
+};
+
 resetAll = function() {
-  clearInterval(intervalID);
+  stop();
   net = new brain.NeuralNetwork({
     hiddenLayers: hiddenLayers || void 0
   });
@@ -62,8 +66,9 @@ resetAll = function() {
       return scene.setInfo(info);
     },
     callbackPeriod: batchSize,
-    learningRate: 0.3
+    learningRate: learningRate
   };
+  console.log("LEARNING RATE IS : " + learningRate);
   net.train(data.trainingData, initializeOptions);
   return scene.updateAndRender(displayOpts);
 };
@@ -76,6 +81,7 @@ resetAll();
 
 train = function() {
   var i;
+  stop();
   i = 0;
   return intervalID = setInterval((function() {
     var output;
@@ -111,9 +117,12 @@ $('#reset-button').click(function(e) {
   return console.log("BLAH");
 });
 
+$('#stop-button').click(function(e) {
+  stop();
+  return console.log("BLAH");
+});
+
 $('#train-button').click(function(e) {
-  resetAll();
-  console.log("BLAH");
   return train();
 });
 
@@ -127,7 +136,7 @@ $('#hidden-layers-button').click(function(e) {
   return resetAll();
 });
 
-},{"./scene":3,"./threes":4,"./threesLeg":5,"./xor":6}],2:[function(require,module,exports){
+},{"./scene":3,"./threes":4,"./xor":6}],2:[function(require,module,exports){
 var getNeurons;
 
 getNeurons = function(net) {
@@ -312,7 +321,7 @@ module.exports = function(net) {
     var cube, geometry, material;
     geometry = new THREE.BoxGeometry(size, size, size);
     material = new THREE.MeshBasicMaterial({
-      color: 0xC4C4C4
+      color: 0xFFFFFF
     });
     cube = new THREE.Mesh(geometry, material);
     return cube;
@@ -330,7 +339,7 @@ module.exports = function(net) {
     var cube, geometry, material;
     geometry = new THREE.BoxGeometry(size, size, size);
     material = new THREE.MeshBasicMaterial({
-      color: 0xC4C4C4
+      color: 0xFFFFFF
     });
     cube = new THREE.Mesh(geometry, material);
     return cube;
@@ -369,46 +378,28 @@ module.exports = function(net) {
 };
 
 },{}],4:[function(require,module,exports){
-var noThreesData, notThrees, testThree, three, threes, yesThreesData;
+var data, test, three, threes;
 
-threes = [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1], [0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]];
+threes = [[[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1]], [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1], [0]], [[0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1], [0]], [[0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], [0]], [[0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0], [0]], [[0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0], [0]], [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0]], [[1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], [0]], [[0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], [0]]];
 
-notThrees = [[0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1], [0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1], [0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0], [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], [0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]];
+test = [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [0]];
 
-testThree = [1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1];
-
-noThreesData = (function() {
-  var i, len, results;
-  results = [];
-  for (i = 0, len = notThrees.length; i < len; i++) {
-    three = notThrees[i];
-    results.push({
-      input: three,
-      output: [0]
-    });
-  }
-  return results;
-})();
-
-yesThreesData = (function() {
+data = (function() {
   var i, len, results;
   results = [];
   for (i = 0, len = threes.length; i < len; i++) {
     three = threes[i];
     results.push({
-      input: three,
-      output: [1]
+      input: three[0],
+      output: three[1]
     });
   }
   return results;
 })();
 
-module.exports = noThreesData.concat(yesThreesData);
-
 module.exports = {
-  trainingData: noThreesData.concat(yesThreesData),
-  testData: testThree,
-  hiddenLayers: [1]
+  trainingData: data,
+  testData: test
 };
 
 },{}],5:[function(require,module,exports){

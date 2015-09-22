@@ -134,7 +134,7 @@ module.exports = (net) ->
   sensorNode = (size) ->
     geometry = new THREE.BoxGeometry( size, size, size )
     material = new THREE.MeshBasicMaterial(
-      color: 0xC4C4C4
+      color: 0xFFFFFF
     )
     cube = new THREE.Mesh( geometry, material )
     return cube
@@ -150,7 +150,7 @@ module.exports = (net) ->
   outputNode = (size) ->
     geometry = new THREE.BoxGeometry( size, size, size )
     material = new THREE.MeshBasicMaterial(
-      color: 0xC4C4C4
+      color: 0xFFFFFF
     )
     cube = new THREE.Mesh( geometry, material )
     return cube
