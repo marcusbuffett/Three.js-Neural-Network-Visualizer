@@ -27,33 +27,59 @@ module.exports = (net) ->
     error: 0
     iterations: 0
 
+
   setInfo = (newInfo) ->
     info = newInfo
 
-  generateNeurons = () ->
+  generateNeurons = (displayOpts) ->
     rows = net.sizes.length
     for row in [0...rows]
       rowSpacing = (height*2-size*rows)/(rows-1)
       y = size*(row)+rowSpacing*(row)
       yOffset = (rows*size+rowSpacing*(rows-1))/2
-      cols = net.sizes[row]
       neurons.push([])
-      for col in [0...cols]
-        colSpacing = (width*2-size*cols)/(cols-1 || 1)
-        xOffset = (cols*size+colSpacing*(cols-1))/2
-        x = size*(col)+colSpacing*(col)
-        if row == 0
-          obj = sensorNode(size)
-        else if row == rows-1
-          obj = outputNode(size)
-        else
-          obj = hiddenNode(size)
-        obj.position.set(x-xOffset,y-yOffset,0)
-        obj.renderOrder = 1
-        console.log(obj)
-        scene.add obj
-        neurons[neurons.length - 1].push(obj)
-    return neurons
+      if row == 0 && displayOpts.grid
+        constructor = sensorNode
+      else if row == rows-1 && displayOpts.grid
+        constructor = outputNode
+      else if displayOpts.grid
+        constructor = hiddenNode
+      if displayOpts.grid
+        displayGrid(row, y-yOffset, constructor)
+      # else
+
+  displayLayer = (row, y, nodeConstructor) ->
+    cols = net.sizes[row]
+    for col in [0...cols]
+      colSpacing = (width*2-size*cols)/(cols-1 || 1)
+      xOffset = (cols*size+colSpacing*(cols-1))/2
+      x = size*(col)+colSpacing*(col)
+      obj = nodeConstructor(size)
+      obj.position.set(x-xOffset,y,0)
+      obj.renderOrder = 1
+      scene.add obj
+      neurons[neurons.length - 1].push(obj)
+
+  displayGrid = (row, y, nodeConstructor) ->
+    cols = net.sizes[row]
+    rowCols = Math.floor(Math.sqrt(cols))
+    rows = Math.ceil(Math.sqrt(cols))
+    rowSize = rowCols
+    colSpacing = 1
+    rowsHeight = (colSpacing*(rows-1))
+    xOffset = (rowCols)/2
+    for col in [0...cols]
+      farX = colSpacing*col
+      x = (farX)%rowSize
+      z = Math.floor((farX)/rowSize)
+
+      zOffset = (rowsHeight)/2
+      obj = nodeConstructor(size)
+      obj.position.set(x-xOffset,y,z-zOffset)
+      obj.renderOrder = 1
+      scene.add obj
+      neurons[neurons.length - 1].push(obj)
+
 
   generateConnections = (neurons) ->
     for layer, r in neurons.slice(0, -1)
@@ -68,9 +94,9 @@ module.exports = (net) ->
           # material.linewidth = Math.abs(net.weights[r+1][j][i])*5
           weightToNextLayer = net.weights[r+1][j][i]
           if weightToNextLayer > 0
-            material.color.setHSL(0.1,0.5,0.5)
-          if weightToNextLayer < 0
             material.color.setHSL(0.5,0.5,0.5)
+          if weightToNextLayer < 0
+            material.color.setHSL(0.1,0.5,0.5)
           sourceImportance += Math.abs(weightToNextLayer)
           material.opacity = Math.pow(Math.abs(weightToNextLayer), 3)
           material.transparent = true
@@ -83,8 +109,9 @@ module.exports = (net) ->
 
           line = new THREE.Line( geometry, material )
           line.renderOrder = -Math.abs(weightToNextLayer)
-          scene.add line
-          connections.push(line)
+          if Math.abs(weightToNextLayer) > 0.2
+            scene.add line
+            connections.push(line)
         sourceImportance = sourceImportance / nextLayer.length
         # if sourceImportance > 1
           # debugger
@@ -94,12 +121,14 @@ module.exports = (net) ->
           source.scale.x = sourceImportance
           source.scale.y = sourceImportance
           source.scale.z = sourceImportance
-          source.position.z = if info.iterations == 0 then 0 else sourceImportance
-        console.log(info.iterations)
+        # if r == 0
+          # source.scale.x = Math.pow(sourceImportance, .5)
+          # source.scale.y = Math.pow(sourceImportance, .5)
+          # source.scale.z = sourceImportance
 
 
-  updateScene = () ->
-    generateNeurons()
+  updateScene = (opts) ->
+    generateNeurons(opts)
     generateConnections(neurons)
 
   sensorNode = (size) ->
@@ -128,22 +157,25 @@ module.exports = (net) ->
 
   camera.position.z = 10
 
-  updateAndRender = ->
+  updateAndRender = (opts)->
     for i in [scene.children.length..0]
       obj = scene.children[ i ]
       if obj != camera
         scene.remove(obj)
     neurons = []
     connections = []
-    updateScene()
-    $($('#info p').first()).text("Error : #{info.error}")
+    updateScene(opts)
+    $($('#info p').first()).text("Error : #{Math.round(info.error * 100) / 100}")
     $($('#info p').last()).text("Iterations : #{info.iterations}")
-    render()
 
   render = () ->
     requestAnimationFrame render
     renderer.render scene, camera
 
+  render()
+
+  setNet = (n) ->
+    net = n
 
   module.exports = {
     scene: scene
@@ -151,4 +183,5 @@ module.exports = (net) ->
     updateAndRender: updateAndRender
     updateScene: updateScene
     setInfo: setInfo
+    setNet: setNet
   }
