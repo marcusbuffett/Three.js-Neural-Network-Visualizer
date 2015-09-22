@@ -188,7 +188,7 @@ module.exports = function(net) {
   neurons = [];
   connections = [];
   width = 5;
-  height = 2;
+  height = 3;
   size = 0.2;
   info = {
     error: 0,
