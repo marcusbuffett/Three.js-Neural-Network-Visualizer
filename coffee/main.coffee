@@ -1,36 +1,49 @@
-scene = require('./scene')
+threeData = require('./threes')
+xorData   = require('./xor')
+data = threeData
 
-
-net = new brain.NeuralNetwork(
-  hiddenLayers: [4,5],
-)
-
-trainingData = [{input: [0.1, 0.5], output: [0.6]},
-                {input: [0.7, 0.2], output: [0.9]},
-                {input: [0.3, 0.6], output: [0.9]},
-                {input: [0.1, 0.1], output: [0.2]},
-                {input: [0.15, 0.15], output: [0.3]},
-                {input: [0.05, 0.1], output: [0.15]},
-                {input: [0.15, 0.05], output: [0.2]}]
-
+batchSize = 5
+iterations = 10000
+currentIteration = 0
+error = Infinity
 
 trainingOptions = {
-  errorThresh: 0.0001, # error threshold to reach
-  iterations: 4000,   # maximum training iterations
-  log: true,           # console.log() progress periodically
-  callback: () ->
-    scene.render(net)
-  callbackPeriod: 100,
-  logPeriod: 1000,     # number of iterations between logging
+  errorThresh: 0.002, # error threshold to reach
+  iterations: batchSize,   # maximum training iterations
+  callback: (info) ->
+    console.log("STTING")
+    info.iterations = currentIteration
+    error = info.error
+    scene.setInfo(info)
+  callbackPeriod: batchSize,     # number of iterations between logging
   learningRate: 0.3    # learning rate
 }
- 
-net.train(trainingData, trainingOptions)
 
-# scene.useNet(net)
-scene.render(net)
+initializeOptions = {
+  iterations: 0
+}
 
-output = net.run([0.2, 0.3])
-console.log(output)
+console.log("HL : ")
+console.log data.hiddenLayers
+net = new brain.NeuralNetwork
+  hiddenLayers: data.hiddenLayers || undefined
 
-console.log("YEAH")
+scene = require('./scene')(net)
+console.log(data)
+net.train(data.trainingData, initializeOptions)
+console.log(net)
+scene.updateAndRender()
+
+i = 0
+intervalID = setInterval( (->
+  net.train(data.trainingData, trainingOptions)
+  scene.updateAndRender()
+  i++
+  output = net.run(data.testData)
+  currentIteration = i*batchSize
+  if i*batchSize > iterations || error < trainingOptions.errorThresh
+    clearInterval(intervalID)
+    console.log("YEAH")
+  ), 100)
+
+
