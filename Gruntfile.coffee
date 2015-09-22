@@ -41,6 +41,8 @@ module.exports = (grunt) ->
   require('load-grunt-tasks')(grunt)
 
   grunt.registerTask('default', [
+    'coffee:build',
+    'browserify:build',
     'watch'
   ])
 
