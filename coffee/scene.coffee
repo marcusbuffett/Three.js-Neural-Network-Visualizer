@@ -67,6 +67,10 @@ module.exports = (net) ->
           material.linewidth = 2
           # material.linewidth = Math.abs(net.weights[r+1][j][i])*5
           weightToNextLayer = net.weights[r+1][j][i]
+          if weightToNextLayer > 0
+            material.color.setHSL(0.1,0.5,0.5)
+          if weightToNextLayer < 0
+            material.color.setHSL(0.5,0.5,0.5)
           sourceImportance += Math.abs(weightToNextLayer)
           material.opacity = Math.pow(Math.abs(weightToNextLayer), 3)
           material.transparent = true
@@ -78,7 +82,7 @@ module.exports = (net) ->
           )
 
           line = new THREE.Line( geometry, material )
-          line.renderOrder = sourceImportance
+          line.renderOrder = -Math.abs(weightToNextLayer)
           scene.add line
           connections.push(line)
         sourceImportance = sourceImportance / nextLayer.length
@@ -86,10 +90,11 @@ module.exports = (net) ->
           # debugger
         # console.log("IMPORTANTCE : " + sourceImportance)
         sourceImportance = if sourceImportance > 3 then 3 else sourceImportance
-        source.scale.x = sourceImportance
-        source.scale.y = sourceImportance
-        source.scale.z = sourceImportance
-        # source.position.z = if info.iterations == 0 then 0 else sourceImportance
+        if r > 0
+          source.scale.x = sourceImportance
+          source.scale.y = sourceImportance
+          source.scale.z = sourceImportance
+          source.position.z = if info.iterations == 0 then 0 else sourceImportance
         console.log(info.iterations)
 
 
@@ -106,7 +111,7 @@ module.exports = (net) ->
     return cube
 
   hiddenNode = (size) ->
-    geometry = new THREE.SphereGeometry(size/2, 20)
+    geometry = new THREE.SphereGeometry(size/2, 60)
     material = new THREE.MeshBasicMaterial(
       color: 0xFFFFFF
     )

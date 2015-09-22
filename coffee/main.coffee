@@ -8,7 +8,7 @@ currentIteration = 0
 error = Infinity
 
 trainingOptions = {
-  errorThresh: 0.002, # error threshold to reach
+  errorThresh: 0.01, # error threshold to reach
   iterations: batchSize,   # maximum training iterations
   callback: (info) ->
     console.log("STTING")

@@ -16,7 +16,7 @@ currentIteration = 0;
 error = Infinity;
 
 trainingOptions = {
-  errorThresh: 0.002,
+  errorThresh: 0.01,
   iterations: batchSize,
   callback: function(info) {
     console.log("STTING");
@@ -175,21 +175,30 @@ module.exports = function(net) {
             });
             material.linewidth = 2;
             weightToNextLayer = net.weights[r + 1][j][i];
+            if (weightToNextLayer > 0) {
+              material.color.setHSL(0.1, 0.5, 0.5);
+            }
+            if (weightToNextLayer < 0) {
+              material.color.setHSL(0.5, 0.5, 0.5);
+            }
             sourceImportance += Math.abs(weightToNextLayer);
             material.opacity = Math.pow(Math.abs(weightToNextLayer), 3);
             material.transparent = true;
             geometry = new THREE.Geometry();
             geometry.vertices.push(source.position, target.position);
             line = new THREE.Line(geometry, material);
-            line.renderOrder = sourceImportance;
+            line.renderOrder = -Math.abs(weightToNextLayer);
             scene.add(line);
             connections.push(line);
           }
           sourceImportance = sourceImportance / nextLayer.length;
           sourceImportance = sourceImportance > 3 ? 3 : sourceImportance;
-          source.scale.x = sourceImportance;
-          source.scale.y = sourceImportance;
-          source.scale.z = sourceImportance;
+          if (r > 0) {
+            source.scale.x = sourceImportance;
+            source.scale.y = sourceImportance;
+            source.scale.z = sourceImportance;
+            source.position.z = info.iterations === 0 ? 0 : sourceImportance;
+          }
           results1.push(console.log(info.iterations));
         }
         return results1;
@@ -212,7 +221,7 @@ module.exports = function(net) {
   };
   hiddenNode = function(size) {
     var cube, geometry, material;
-    geometry = new THREE.SphereGeometry(size / 2, 20);
+    geometry = new THREE.SphereGeometry(size / 2, 60);
     material = new THREE.MeshBasicMaterial({
       color: 0xFFFFFF
     });
