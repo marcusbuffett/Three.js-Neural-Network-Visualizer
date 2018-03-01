@@ -1,3 +1,4 @@
+
 {
   "name": "mvp",
   "version": "1.0.0",
@@ -11,7 +12,10 @@
     "grunt-open": "^0.2.3",
     "load-grunt-tasks": "^3.3.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "coffeeify": "^3.0.1",
+    "coffeescript": "^2.2.2"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

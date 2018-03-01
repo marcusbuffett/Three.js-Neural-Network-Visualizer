@@ -20,3 +20,17 @@ Here's an example of a neural network trained for 90 iterations, with a learning
 The blue lines represent positive weights, the orange lines represent negative weights, and the size of the neurons represent the average absolute weight that the nodes it's connected to assign it's output (roughly translated, the neuron's importance to the network).
 
 Sensor and output neurons are represented by cubes, and hidden layers are represented by spheres.
+
+## Running
+
+Install required stuff:
+```sh
+npm install -g bower
+bower install
+npm install
+```
+
+Compile coffeescript:
+```sh
+browserify -t coffeeify --extension=".coffee" coffee/main.coffee > scripts/main.js
+```
