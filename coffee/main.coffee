@@ -28,7 +28,7 @@ displayOpts = {
 }
 
 initializeOptions = {
-  iterations: 0
+  iterations: 1
 }
 
 stop = ->
@@ -43,6 +43,7 @@ resetAll = ->
     errorThresh: 0.01, # error threshold to reach
     iterations: batchSize,   # maximum training iterations
     callback: (info) ->
+      info = Object.assign({}, info)
       info.iterations = currentIteration
       error = info.error
       scene.setInfo(info)
@@ -76,7 +77,6 @@ train = ->
 $('#batch-size-button').click (e) ->
   size = Number($('#batch-size-input').val())
   console.log("BLAH")
-  debugger
   setBatchSize(size)
 
 $('#learning-rate-button').click (e) ->
@@ -98,7 +98,6 @@ $('#train-button').click (e) ->
 
 $('#hidden-layers-button').click (e) ->
   console.log($('#hidden-layers-input').val())
-  debugger
   hLayers = JSON.parse($('#hidden-layers-input').val())
   console.log(hLayers)
   hiddenLayers = hLayers

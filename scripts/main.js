@@ -1,10 +1,11 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 var batchSize, currentIteration, data, displayOpts, error, hiddenLayers, initializeOptions, intervalID, iterations, learningRate, net, resetAll, scene, setBatchSize, setLearningRate, stop, threeData, train, trainingOptions, xorData;
 
 threeData = require('./threes');
 
 xorData = require('./xor');
 
+// threeData = require('./threesLeg')
 data = threeData;
 
 batchSize = 1;
@@ -15,7 +16,7 @@ iterations = 100000;
 
 currentIteration = 0;
 
-error = Infinity;
+error = 2e308;
 
 intervalID = 0;
 
@@ -44,7 +45,7 @@ displayOpts = {
 };
 
 initializeOptions = {
-  iterations: 0
+  iterations: 1
 };
 
 stop = function() {
@@ -58,15 +59,16 @@ resetAll = function() {
   });
   scene.setNet(net);
   trainingOptions = {
-    errorThresh: 0.01,
-    iterations: batchSize,
+    errorThresh: 0.01, // error threshold to reach
+    iterations: batchSize, // maximum training iterations
     callback: function(info) {
+      info = Object.assign({}, info);
       info.iterations = currentIteration;
       error = info.error;
       return scene.setInfo(info);
     },
-    callbackPeriod: batchSize,
-    learningRate: learningRate
+    callbackPeriod: batchSize, // number of iterations between logging
+    learningRate: learningRate // learning rate
   };
   console.log("LEARNING RATE IS : " + learningRate);
   net.train(data.trainingData, initializeOptions);
@@ -101,7 +103,6 @@ $('#batch-size-button').click(function(e) {
   var size;
   size = Number($('#batch-size-input').val());
   console.log("BLAH");
-  debugger;
   return setBatchSize(size);
 });
 
@@ -129,54 +130,24 @@ $('#train-button').click(function(e) {
 $('#hidden-layers-button').click(function(e) {
   var hLayers;
   console.log($('#hidden-layers-input').val());
-  debugger;
   hLayers = JSON.parse($('#hidden-layers-input').val());
   console.log(hLayers);
   hiddenLayers = hLayers;
   return resetAll();
 });
 
-},{"./scene":3,"./threes":4,"./xor":6}],2:[function(require,module,exports){
-var getNeurons;
 
-getNeurons = function(net) {
-  var col, cols, cube, edges, geometry, i, material, ref, results, row, rows, x, xOffset, y, yOffset;
-  console.log(net);
-  rows = net.hiddenSizes.length;
-  results = [];
-  for (row = i = 0, ref = rows; 0 <= ref ? i < ref : i > ref; row = 0 <= ref ? ++i : --i) {
-    y = size * row + rowSpacing * row;
-    yOffset = (rows * size + rowSpacing * (rows - 1)) / 2;
-    cols = net.hiddenSizes[row];
-    console.log("y : " + y);
-    console.log("yOffset : " + yOffset);
-    results.push((function() {
-      var j, ref1, results1;
-      results1 = [];
-      for (col = j = 0, ref1 = cols; 0 <= ref1 ? j < ref1 : j > ref1; col = 0 <= ref1 ? ++j : --j) {
-        xOffset = (cols * size + colSpacing * (cols - 1)) / 2;
-        x = size * col + colSpacing * col;
-        geometry = new THREE.BoxGeometry(size, size, 0.1);
-        material = new THREE.MeshBasicMaterial({
-          color: 0xFF0000
-        });
-        cube = new THREE.Mesh(geometry, material);
-        cube.position.set(x - xOffset, y - yOffset, 0);
-        edges = new THREE.EdgesHelper(cube, 0x00ff00);
-        scene.add(edges);
-        results1.push(scene.add(cube));
-      }
-      return results1;
-    })());
-  }
-  return results;
-};
-
-},{}],3:[function(require,module,exports){
+},{"./scene":2,"./threes":3,"./xor":4}],2:[function(require,module,exports){
 module.exports = function(net) {
   var camera, connections, displayGrid, displayLayer, generateConnections, generateNeurons, height, hiddenNode, info, neurons, orbit, outputNode, render, renderer, scene, sensorNode, setInfo, setNet, size, updateAndRender, updateScene, width;
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  // camera = new THREE.OrthographicCamera( window.innerWidth / - 2,
+  // window.innerWidth / 2,
+  // window.innerHeight / 2,
+  // window.innerHeight / - 2,
+  // 1,
+  // 1000 )
   renderer = new THREE.WebGLRenderer({
     alpha: true,
     antialias: true
@@ -201,7 +172,7 @@ module.exports = function(net) {
     var constructor, k, ref, results, row, rowSpacing, rows, y, yOffset;
     rows = net.sizes.length;
     results = [];
-    for (row = k = 0, ref = rows; 0 <= ref ? k < ref : k > ref; row = 0 <= ref ? ++k : --k) {
+    for (row = k = 0, ref = rows; (0 <= ref ? k < ref : k > ref); row = 0 <= ref ? ++k : --k) {
       rowSpacing = (height * 2 - size * rows) / (rows - 1);
       y = size * row + rowSpacing * row;
       yOffset = (rows * size + rowSpacing * (rows - 1)) / 2;
@@ -221,11 +192,12 @@ module.exports = function(net) {
     }
     return results;
   };
+  // else
   displayLayer = function(row, y, nodeConstructor) {
     var col, colSpacing, cols, k, obj, ref, results, x, xOffset;
     cols = net.sizes[row];
     results = [];
-    for (col = k = 0, ref = cols; 0 <= ref ? k < ref : k > ref; col = 0 <= ref ? ++k : --k) {
+    for (col = k = 0, ref = cols; (0 <= ref ? k < ref : k > ref); col = 0 <= ref ? ++k : --k) {
       colSpacing = (width * 2 - size * cols) / (cols - 1 || 1);
       xOffset = (cols * size + colSpacing * (cols - 1)) / 2;
       x = size * col + colSpacing * col;
@@ -247,7 +219,7 @@ module.exports = function(net) {
     rowsHeight = colSpacing * (rows - 1);
     xOffset = rowCols / 2;
     results = [];
-    for (col = k = 0, ref = cols; 0 <= ref ? k < ref : k > ref; col = 0 <= ref ? ++k : --k) {
+    for (col = k = 0, ref = cols; (0 <= ref ? k < ref : k > ref); col = 0 <= ref ? ++k : --k) {
       farX = colSpacing * col;
       x = farX % rowSize;
       z = Math.floor(farX / rowSize);
@@ -279,6 +251,7 @@ module.exports = function(net) {
               color: 0xFFFFFF
             });
             material.linewidth = 2;
+            // material.linewidth = Math.abs(net.weights[r+1][j][i])*5
             weightToNextLayer = net.weights[r + 1][j][i];
             if (weightToNextLayer > 0) {
               material.color.setHSL(0.5, 0.5, 0.5);
@@ -299,6 +272,9 @@ module.exports = function(net) {
             }
           }
           sourceImportance = sourceImportance / nextLayer.length;
+          // if sourceImportance > 1
+          // debugger
+          // console.log("IMPORTANTCE : " + sourceImportance)
           sourceImportance = sourceImportance > 3 ? 3 : sourceImportance;
           if (r > 0) {
             source.scale.x = sourceImportance;
@@ -313,6 +289,10 @@ module.exports = function(net) {
     }
     return results;
   };
+  // if r == 0
+  // source.scale.x = Math.pow(sourceImportance, .5)
+  // source.scale.y = Math.pow(sourceImportance, .5)
+  // source.scale.z = sourceImportance
   updateScene = function(opts) {
     generateNeurons(opts);
     return generateConnections(neurons);
@@ -347,7 +327,7 @@ module.exports = function(net) {
   camera.position.z = 10;
   updateAndRender = function(opts) {
     var i, k, obj, ref;
-    for (i = k = ref = scene.children.length; ref <= 0 ? k <= 0 : k >= 0; i = ref <= 0 ? ++k : --k) {
+    for (i = k = ref = scene.children.length; (ref <= 0 ? k <= 0 : k >= 0); i = ref <= 0 ? ++k : --k) {
       obj = scene.children[i];
       if (obj !== camera) {
         scene.remove(obj);
@@ -356,8 +336,8 @@ module.exports = function(net) {
     neurons = [];
     connections = [];
     updateScene(opts);
-    $($('#info p').first()).text("Error : " + (Math.round(info.error * 100) / 100));
-    return $($('#info p').last()).text("Iterations : " + info.iterations);
+    $($('#info p').first()).text(`Error : ${Math.round(info.error * 100) / 100}`);
+    return $($('#info p').last()).text(`Iterations : ${info.iterations}`);
   };
   render = function() {
     requestAnimationFrame(render);
@@ -377,7 +357,8 @@ module.exports = function(net) {
   };
 };
 
-},{}],4:[function(require,module,exports){
+
+},{}],3:[function(require,module,exports){
 var data, test, three, threes;
 
 threes = [[[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1]], [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1], [0]], [[0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1], [0]], [[0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], [0]], [[0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0], [0]], [[0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0], [0]], [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0]], [[1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], [0]], [[0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], [0]]];
@@ -402,33 +383,8 @@ module.exports = {
   testData: test
 };
 
-},{}],5:[function(require,module,exports){
-var data, test, three, threes;
 
-threes = [[[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1]], [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [0]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1], [0]], [[0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [0]], [[0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1], [1]], [[0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1], [0]], [[0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], [1]], [[0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0], [1]], [[0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0], [1]], [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0]], [[1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1]], [[0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], [1]]];
-
-test = [[1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1], [0]];
-
-data = (function() {
-  var i, len, results;
-  results = [];
-  for (i = 0, len = threes.length; i < len; i++) {
-    three = threes[i];
-    results.push({
-      input: three[0],
-      output: three[1]
-    });
-  }
-  return results;
-})();
-
-module.exports = {
-  trainingData: data,
-  testData: test,
-  hiddenLayers: [1]
-};
-
-},{}],6:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var testData, xor, xorData, xors;
 
 xors = [[[0, 0], [0]], [[0, 1], [1]], [[1, 0], [1]], [[1, 1], [0]]];
@@ -453,4 +409,5 @@ module.exports = {
   testData: xor
 };
 
-},{}]},{},[1,2,3,4,5,6]);
+
+},{}]},{},[1]);
